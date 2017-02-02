@@ -3,10 +3,10 @@ from random import shuffle
 from collections import defaultdict
 
 class Suit(Enum):
-	SPADES = 'SPADES'
-	HEARTS = 'HEARTS'
-	DIAMONDS = 'DIAMONDS'
-	CLUBS = 'CLUBS'
+	SPADES   = 0
+	HEARTS   = 1
+	DIAMONDS = 2
+	CLUBS    = 3
 
 def value_to_char(value):
 	value_chars = {

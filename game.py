@@ -33,6 +33,18 @@ class Game:
 			self.gs.active_player = self.do_round()
 			self.gs.round += 1
 
+		# Print each player's tricks after the hand
+		for player in range(self.gs.num_players):
+			print('Player {} took {}'.format(player + 1, self.gs.tricks[player].to_string()))
+
+		# Score each player's hand and increment their score accordingly
+		self.score_hands()
+
+		# Print score
+		print('SCORE')
+		for player in range(self.gs.num_players):
+			print('Player {} has {} points.'.format(player + 1, self.gs.scores[player]))
+
 	# Returns player that wins the bidding round
 	def bidding_round(self):
 		print('Player {} bids first.'.format(self.gs.active_player + 1))
@@ -114,26 +126,30 @@ class Game:
 		for turn in range(self.gs.num_players):
 			self.gs.turn = turn
 
-			# Human
-			if self.gs.active_player == 0:
-				# Print player's hand
-				print('Your hand:\n{}'.format(self.gs.hands[self.gs.active_player].to_string()))
-				# Print selection numbers under hand
-				for i in range(self.gs.hands[self.gs.active_player].size()):
-					print('{}. '.format(i + 1), end='')
-
-				# Let player choose a card
-				# Loop until valid choice
-				while True:
-					choice = int(input('Choose a card to play (1-{}): '.format(self.gs.hand_size - self.gs.round)))
-					# Choice out of bounds
-					if choice < 1 or choice > self.gs.hands[self.gs.active_player].size():
-						print('Invalid choice.')
-					else:
-						break
-			# Bot
+			# Force player to play their last card
+			if self.gs.round == self.gs.hand_size - 1:
+				choice = 1
 			else:
-				choice = self.pb.play_card(self.gs)
+				# Human
+				if self.gs.active_player == 0:
+					# Print player's hand
+					print('Your hand:\n{}'.format(self.gs.hands[self.gs.active_player].to_string()))
+					# Print selection numbers under hand
+					for i in range(self.gs.hands[self.gs.active_player].size()):
+						print('{}. '.format(i + 1), end='')
+
+					# Let player choose a card
+					# Loop until valid choice
+					while True:
+						choice = int(input('\nChoose a card to play (1-{}): '.format(self.gs.hand_size - self.gs.round)))
+						# Choice out of bounds
+						if choice < 1 or choice > self.gs.hands[self.gs.active_player].size():
+							print('Invalid choice.')
+						else:
+							break
+				# Bot
+				else:
+					choice = self.pb.play_card(self.gs)
 
 			# Get played card from hand
 			played_card = self.gs.hands[self.gs.active_player].deck[choice - 1]
@@ -150,7 +166,7 @@ class Game:
 				# Set trump if first round
 				if self.gs.round == 0:
 					self.gs.trump = played_card.suit
-					print('Trump is now {}.'.format(self.gs.trump))
+					print('Trump is now {}.'.format(self.gs.trump.name))
 			# Check if new card beats previous top
 			else:
 				# Current top card is trump
@@ -192,3 +208,4 @@ class Game:
 
 		# Return winner of the round
 		return self.gs.taker
+

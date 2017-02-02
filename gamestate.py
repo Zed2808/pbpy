@@ -1,6 +1,4 @@
-from deck import Suit
-from deck import Card
-from deck import Deck
+from deck import Suit, Card, Deck
 
 class Gamestate:
 	def __init__(self):
