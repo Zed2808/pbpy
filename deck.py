@@ -62,6 +62,14 @@ class Deck:
 	def add_card(self, card):
 		self.deck.append(card)
 
+	# Remove card from deck
+	def remove_card(self, index):
+		del self.deck[index]
+
+	# Return length of list
+	def size(self):
+		return len(self.deck)
+
 	# Return string representation of the deck
 	def to_string(self):
 		output = ''

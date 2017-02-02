@@ -1,5 +1,6 @@
 from gamestate import Gamestate
 from pb import PB
+from deck import Deck
 
 class Game:
 	def __init__(self):
@@ -24,9 +25,13 @@ class Game:
 		# Print highest bidder and their bid
 		print('Player {} won the bidding round with a bid of {}.'.format(self.gs.bidder + 1, self.gs.bid))
 
+		# Set round from -1 (bidding round) to 0
+		self.gs.round = 0
+
 		# Play out a hand
-		for player in range(self.gs.num_players):
+		for player in range(self.gs.hand_size):
 			self.gs.active_player = self.do_round()
+			self.gs.round += 1
 
 	# Returns player that wins the bidding round
 	def bidding_round(self):
@@ -100,3 +105,90 @@ class Game:
 		else:
 			print('Player {} matches Player {}\'s bet of {}.'.format(self.gs.active_player + 1, self.gs.bidder + 1, self.gs.bid))
 			self.gs.bidder = self.gs.active_player
+
+	# Play a round and return the winning player
+	def do_round(self):
+		print('Player {} is leading out.'.format(self.gs.active_player + 1))
+
+		# Give each player a turn to play their card
+		for turn in range(self.gs.num_players):
+			self.gs.turn = turn
+
+			# Human
+			if self.gs.active_player == 0:
+				# Print player's hand
+				print('Your hand:\n{}'.format(self.gs.hands[self.gs.active_player].to_string()))
+				# Print selection numbers under hand
+				for i in range(self.gs.hands[self.gs.active_player].size()):
+					print('{}. '.format(i + 1), end='')
+
+				# Let player choose a card
+				# Loop until valid choice
+				while True:
+					choice = int(input('Choose a card to play (1-{}): '.format(self.gs.hand_size - self.gs.round)))
+					# Choice out of bounds
+					if choice < 1 or choice > self.gs.hands[self.gs.active_player].size():
+						print('Invalid choice.')
+					else:
+						break
+			# Bot
+			else:
+				choice = self.pb.play_card(self.gs)
+
+			# Get played card from hand
+			played_card = self.gs.hands[self.gs.active_player].deck[choice - 1]
+
+			# Print played card
+			print ('Player {} plays {}.'.format(self.gs.active_player + 1, played_card.to_string()))
+
+			# If leading the round
+			if self.gs.turn == 0:
+				self.gs.lead_suit = played_card.suit
+				self.gs.taker = self.gs.active_player
+				self.gs.top_card = played_card
+
+				# Set trump if first round
+				if self.gs.round == 0:
+					self.gs.trump = played_card.suit
+					print('Trump is now {}.'.format(self.gs.trump))
+			# Check if new card beats previous top
+			else:
+				# Current top card is trump
+				if self.gs.top_card.suit == self.gs.trump:
+					# Played card is also trump
+					if played_card.suit == self.gs.trump:
+						# Played card beats value of top card
+						if played_card.value > self.gs.top_card.value:
+							self.gs.top_card = played_card
+							self.gs.taker = self.gs.active_player
+				# Current top card is not trump (must be lead suit)
+				else:
+					# Played card is trump
+					if played_card.suit == self.gs.trump:
+						self.gs.top_card = played_card
+						self.gs.taker = self.gs.active_player
+					# Played card is lead suit
+					elif played_card.suit == self.gs.lead_suit:
+						# Played card beats value of top card
+						if played_card.value > self.gs.top_card.value:
+							self.gs.top_card = played_card
+							self.gs.taker = self.gs.active_player
+
+			# Move card from hand to the middle pile
+			self.gs.middle.add_card(played_card)
+			self.gs.hands[self.gs.active_player].remove_card(choice - 1)
+
+			# Move on to next player
+			self.gs.next_player()
+
+		print('Player {} takes the trick.'.format(self.gs.taker + 1))
+
+		# Take trick
+		for card in range(self.gs.num_players):
+			self.gs.tricks[self.gs.taker].add_card(self.gs.middle.deck[card])
+
+		# Clear middle
+		self.gs.middle = Deck()
+
+		# Return winner of the round
+		return self.gs.taker
