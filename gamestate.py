@@ -32,4 +32,4 @@ class Gamestate:
 	def next_player(self):
 		self.active_player += 1
 		if self.active_player >= self.num_players:
-			active_player = 0
+			self.active_player = 0
