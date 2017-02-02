@@ -9,42 +9,79 @@ class Game:
 		self.pb = PB()
 
 	def play(self):
-		print('Player {} is the dealer.'.format(self.gs.dealer + 1))
+		while True:
+			print('\nPlayer {} is the dealer.'.format(self.gs.dealer + 1))
 
-		# Deal players' hands
+			# Deal players' hands
+			for player in range(self.gs.num_players):
+				for card in range(self.gs.hand_size):
+					self.gs.hands[player].add_card(self.gs.deck.draw())
+
+			# Print player's hand
+			print('\nYour hand:\n{}'.format(self.gs.hands[0].to_string()))
+
+			# Do bidding round, return highest bidder
+			self.bidding_round()
+			self.gs.active_player = self.gs.bidder
+
+			# Print highest bidder and their bid
+			print('\nPlayer {} won the bidding round with a bid of {}.'.format(self.gs.bidder + 1, self.gs.bid))
+
+			# Set round from -1 (bidding round) to 0
+			self.gs.round = 0
+
+			# Play out a hand
+			for player in range(self.gs.hand_size):
+				self.gs.active_player = self.do_round()
+				self.gs.round += 1
+
+			# Print each player's tricks after the hand
+			for player in range(self.gs.num_players):
+				print('\nPlayer {} took {}'.format(player + 1, self.gs.tricks[player].to_string()))
+
+			# Score each player's hand and increment their score accordingly
+			self.score_hands()
+
+			# Print score
+			print('\nSCORE')
+			for player in range(self.gs.num_players):
+				print('Player {} has {} points.'.format(player + 1, self.gs.scores[player]))
+
+			# Check if anyone has reached the score limit
+			winners = []
+			for player in range(self.gs.num_players):
+				if self.gs.scores[player] >= self.gs.score_limit:
+					# Add everyone at/above the score limit to the winner list
+					winners.append(player)
+
+			# Bidder gets winning precedence
+			if self.gs.bidder in winners:
+				print('\nPlayer {} wins with {} points!'.format(self.gs.bidder + 1, self.gs.scores[self.gs.bidder]))
+				break
+			else:
+				if len(winners) == 1:
+					print('\nPlayer {} wins with {} points!'.format(winners[0] + 1, self.gs.scores[winners[0]]))
+					break
+
+			self.prepare_new_hand()
+
+	# Set up/reset variables for a new round
+	def prepare_new_hand(self):
+		# Advance to next dealer, set them as active player
+		self.gs.active_player = self.gs.next_dealer()
+		# Set player after dealer as active
+		self.gs.next_player()
+
+		self.gs.min_bid = 2
+		self.gs.bid = 0
+		self.gs.bidder = -1
+
+		self.gs.round = -1
+
+		self.gs.deck = Deck(filled=True)
+
 		for player in range(self.gs.num_players):
-			for card in range(self.gs.hand_size):
-				self.gs.hands[player].add_card(self.gs.deck.draw())
-
-		# Print player's hand
-		print('\nYour hand:\n{}'.format(self.gs.hands[0].to_string()))
-
-		# Do bidding round, return highest bidder
-		self.bidding_round()
-		self.gs.active_player = self.gs.bidder
-
-		# Print highest bidder and their bid
-		print('\nPlayer {} won the bidding round with a bid of {}.'.format(self.gs.bidder + 1, self.gs.bid))
-
-		# Set round from -1 (bidding round) to 0
-		self.gs.round = 0
-
-		# Play out a hand
-		for player in range(self.gs.hand_size):
-			self.gs.active_player = self.do_round()
-			self.gs.round += 1
-
-		# Print each player's tricks after the hand
-		for player in range(self.gs.num_players):
-			print('\nPlayer {} took {}'.format(player + 1, self.gs.tricks[player].to_string()))
-
-		# Score each player's hand and increment their score accordingly
-		self.score_hands()
-
-		# Print score
-		print('\nSCORE')
-		for player in range(self.gs.num_players):
-			print('Player {} has {} points.'.format(player + 1, self.gs.scores[player]))
+			self.gs.tricks[player] = Deck()
 
 	# Returns player that wins the bidding round
 	def bidding_round(self):
@@ -56,13 +93,13 @@ class Game:
 		while self.gs.active_player != self.gs.dealer:
 			# Human
 			if self.gs.active_player == 0:
-				print('Current bid is {}.'.format(bid))
+				print('\nCurrent bid is {}.'.format(bid))
 				# Loop until valid bid
 				while True:
 					# Get bid from the player
-					bid = input('Your bid (0 to pass): ')
+					bid = int(input('Your bid (0 to pass): '))
 					# If bid too small/large, get new bid
-					if bid < self.gs.min_bid or bid > 4 and bid != 0:
+					if (bid < self.gs.min_bid or bid > 4) and bid != 0:
 						print('Bid must be between {} and 4.'.format(self.gs.min_bid))
 					# Valid bid
 					else:
@@ -109,7 +146,7 @@ class Game:
 					break
 		# Bot
 		else:
-			bid = self.pb.bid(gs)
+			bid = self.pb.bid(self.gs)
 
 		# Dealer passes
 		if bid == 0:
@@ -228,6 +265,8 @@ class Game:
 			14 : 4
 		}
 		pip_values = defaultdict(lambda: 0, pip_values)
+
+		print()
 
 		# For each stack of tricks
 		for player in range(self.gs.num_players):
