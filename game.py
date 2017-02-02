@@ -1,3 +1,4 @@
+from collections import defaultdict
 from gamestate import Gamestate
 from pb import PB
 from deck import Deck
@@ -41,7 +42,7 @@ class Game:
 		self.score_hands()
 
 		# Print score
-		print('SCORE')
+		print('\nSCORE')
 		for player in range(self.gs.num_players):
 			print('Player {} has {} points.'.format(player + 1, self.gs.scores[player]))
 
@@ -209,3 +210,81 @@ class Game:
 		# Return winner of the round
 		return self.gs.taker
 
+	# Score each player's hand and increment points according
+	def score_hands(self):
+		high_trump = 0
+		low_trump = 14
+		jack_taker = -1
+		game_taker = -1
+		round_scores = []
+		pips = []
+
+		# Pip values for each card
+		pip_values = {
+			10 : 10,
+			11 : 1,
+			12 : 2,
+			13 : 3,
+			14 : 4
+		}
+		pip_values = defaultdict(lambda: 0, pip_values)
+
+		# For each stack of tricks
+		for player in range(self.gs.num_players):
+			# Append 0 to round_score and pips for each player
+
+			round_scores.append(0)
+			pips.append(0)
+			# For each card in the stack
+			for card in range(self.gs.tricks[player].size()):
+				current_card = self.gs.tricks[player].deck[card]
+				# If card is trump
+				if current_card.suit == self.gs.trump:
+					# Card is higher than current high trump
+					if current_card.value > high_trump:
+						high_trump = current_card.value
+						high_taker = player
+
+					# Card is lower than current low trump
+					if current_card.value < low_trump:
+						low_trump = current_card.value
+						low_taker = player
+
+					# Card is jack
+					if current_card.value == 11:
+						jack_taker = player
+
+					# Add pips
+					pips[player] += pip_values[current_card.value]
+
+		# Find game point taker
+		max_pips = 0
+		for player in range(self.gs.num_players):
+			if pips[player] > max_pips:
+				game_taker = player
+				max_pips = pips[player]
+
+		# Add up round scores
+		round_scores[high_taker] += 1
+		round_scores[low_taker] += 1
+		round_scores[game_taker] += 1
+		if jack_taker > -1:
+			round_scores[jack_taker] += 1
+
+		# Bidder does not make their bid
+		if round_scores[self.gs.bidder] < self.gs.bid:
+			# Lose points equal to bid and set round score to 0
+			# (bidder gets nothing when points are added)
+			self.gs.scores[self.gs.bidder] -= self.gs.bid
+			round_scores[self.gs.bidder] = 0
+
+		# Increment game scores
+		for player in range(self.gs.num_players):
+			self.gs.scores[player] += round_scores[player]
+
+		# Print who got what points
+		print('Player {} took high.'.format(high_taker + 1))
+		print('Player {} took low.'.format(low_taker + 1))
+		if jack_taker > -1:
+			print('Player {} took jack.'.format(jack_taker + 1))
+		print('Player {} took game.'.format(game_taker + 1))
