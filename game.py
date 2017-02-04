@@ -2,6 +2,7 @@ from collections import defaultdict
 from gamestate import Gamestate
 from pb import PB
 from deck import Deck
+from deck import Suit
 
 class Game:
 	def __init__(self):
@@ -12,12 +13,14 @@ class Game:
 		while True:
 			print('\nPlayer {} is the dealer.'.format(self.gs.dealer + 1))
 
-			# Deal players' hands
+			# Deal and sort players' hands
 			for player in range(self.gs.num_players):
 				for card in range(self.gs.hand_size):
 					self.gs.hands[player].add_card(self.gs.deck.draw())
+				self.gs.hands[player].sort(self.gs.trump, self.gs.lead_suit)
 
 			# Print player's hand
+
 			print('\nYour hand:\n{}'.format(self.gs.hands[0].to_string()))
 
 			# Do bidding round, return highest bidder
@@ -77,6 +80,9 @@ class Game:
 		self.gs.bidder = -1
 
 		self.gs.round = -1
+
+		self.gs.trump = Suit.SPADES
+		self.gs.lead_suit = Suit.HEARTS
 
 		self.gs.deck = Deck(filled=True)
 
@@ -163,6 +169,9 @@ class Game:
 		# Give each player a turn to play their card
 		for turn in range(self.gs.num_players):
 			self.gs.turn = turn
+
+			# Sort player's hand before player's action
+			self.gs.hands[self.gs.active_player].sort(self.gs.trump, self.gs.lead_suit)
 
 			# Force player to play their last card
 			if self.gs.round == self.gs.hand_size - 1:

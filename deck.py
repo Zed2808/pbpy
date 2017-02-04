@@ -66,6 +66,33 @@ class Deck:
 	def remove_card(self, index):
 		del self.deck[index]
 
+	# Sort deck to trump, then lead, then other
+	def sort(self, trump, lead):
+		# Create list of lists for each suit
+		new = [[] for suit in Suit]
+
+		# Put cards into lists for matching suits
+		for card in self.deck:
+			new[card.suit.value].append(card)
+
+		# Clear deck
+		self.deck = []
+
+		# For each suit list in new
+		for suit in Suit:
+			# Sort suit list by card values (descending)
+			new[suit.value].sort(key=lambda card: card.value, reverse=True)
+
+		# Make sure trump comes first
+		self.deck += new[trump.value]
+		# Only add lead cards if lead != trump
+		if lead != trump:
+			self.deck += new[lead.value]
+		# Add all other cards back to the deck
+		for suit in Suit:
+			if suit != trump and suit != lead:
+				self.deck += new[suit.value]
+
 	# Return length of list
 	def size(self):
 		return len(self.deck)

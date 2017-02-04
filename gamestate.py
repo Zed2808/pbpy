@@ -14,7 +14,7 @@ class Gamestate:
 		self.taker = -1
 		self.top_card = Card()
 		self.trump = Suit.SPADES
-		self.lead_suit = Suit.SPADES
+		self.lead_suit = Suit.HEARTS
 		self.deck = Deck(filled=True)
 		self.middle = Deck()
 		self.hands = []
