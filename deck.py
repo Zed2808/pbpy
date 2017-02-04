@@ -93,6 +93,26 @@ class Deck:
 			if suit != trump and suit != lead:
 				self.deck += new[suit.value]
 
+	# Return number of playable cards in the deck (used for hands)
+	def playable_cards(self, trump, lead):
+		num_trump = 0
+		num_lead = 0
+
+		# Count number of trump and lead suit cards
+		for card in self.deck:
+			if card.suit == trump:
+				num_trump += 1
+			elif card.suit == lead:
+				num_lead += 1
+
+		# If no lead suit
+		if num_lead == 0:
+			# Can play anything in hand (non-lead or trump)
+			return self.size()
+		else:
+			# Have to play either trump or lead
+			return num_trump + num_lead
+
 	# Return length of list
 	def size(self):
 		return len(self.deck)

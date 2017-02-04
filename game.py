@@ -179,18 +179,26 @@ class Game:
 			else:
 				# Human
 				if self.gs.active_player == 0:
+					# Get number of playable cards in player's hand
+					if turn == 0:
+						# If leading the round, all cards are playable
+						playable_cards = self.gs.hand_size - self.gs.round
+					else:
+						playable_cards = self.gs.hands[self.gs.active_player].playable_cards(self.gs.trump, self.gs.lead_suit)
+
 					# Print player's hand
 					print('\nYour hand:\n{}'.format(self.gs.hands[self.gs.active_player].to_string()))
 					# Print selection numbers under hand
-					for i in range(self.gs.hands[self.gs.active_player].size()):
+					for i in range(playable_cards):
+						# Only print selection numbers for playable cards
 						print('{}. '.format(i + 1), end='')
 
 					# Let player choose a card
 					# Loop until valid choice
 					while True:
-						choice = int(input('\n\nChoose a card to play (1-{}): '.format(self.gs.hand_size - self.gs.round)))
+						choice = int(input('\n\nChoose a card to play (1-{}): '.format(playable_cards)))
 						# Choice out of bounds
-						if choice < 1 or choice > self.gs.hands[self.gs.active_player].size():
+						if choice < 1 or choice > playable_cards:
 							print('Invalid choice.')
 						else:
 							break
