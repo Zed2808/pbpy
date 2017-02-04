@@ -100,10 +100,10 @@ class Deck:
 
 		# Count number of trump and lead suit cards
 		for card in self.deck:
-			if card.suit == trump:
-				num_trump += 1
-			elif card.suit == lead:
+			if card.suit == lead:
 				num_lead += 1
+			elif card.suit == trump:
+				num_trump += 1
 
 		# If no lead suit
 		if num_lead == 0:
