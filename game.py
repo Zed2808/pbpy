@@ -313,13 +313,17 @@ class Game:
 			if pips[player] > max_pips:
 				game_taker = player
 				max_pips = pips[player]
+			# Tie: if player's pips matches max_pips, set taker to -1
+			elif pips[player] == max_pips:
+				game_taker = -1
 
 		# Add up round scores
 		round_scores[high_taker] += 1
 		round_scores[low_taker] += 1
-		round_scores[game_taker] += 1
 		if jack_taker > -1:
 			round_scores[jack_taker] += 1
+		if game_taker > -1:
+			round_scores[game_taker] += 1
 
 		# Bidder does not make their bid
 		if round_scores[self.gs.bidder] < self.gs.bid:
@@ -337,4 +341,7 @@ class Game:
 		print('Player {} took low.'.format(low_taker + 1))
 		if jack_taker > -1:
 			print('Player {} took jack.'.format(jack_taker + 1))
-		print('Player {} took game.'.format(game_taker + 1))
+		if game_taker > -1:
+			print('Player {} took game.'.format(game_taker + 1))
+		else:
+			print('Players tied for game.')
